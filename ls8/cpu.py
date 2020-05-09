@@ -19,8 +19,7 @@ class CPU:
     def load(self):
         """Load a program into memory."""
         address = 0
-        # print(sys.argv)
-        # For now, we've just hardcoded a program:
+        # Hardcoded program:
         # program = [
         #     # From print8.ls8
         #     0b10000010, # LDI R0,8
@@ -30,9 +29,9 @@ class CPU:
         #     0b00000000,
         #     0b00000001, # HLT
         # ]
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
+
+        # print(sys.argv)
+        # ensure two files passed in 
         if len(sys.argv) != 2:
             print("Not correct filename passed in")
             sys.exit(1)
@@ -43,20 +42,21 @@ class CPU:
                 for line in f:
                     # ignore comments
                     comment_split = line.split("#")
-
+                    # remove extra spaces
                     num = comment_split[0].strip()
+                    # check if no num and con
                     if num == '':
                         continue
                     container.append(num)
                     program = [int(c, 2) for c in container]
-
+        # print error if not found
         except FileNotFoundError:
             print(f"{sys.argv[0]}! {sys.argv[1]} not found")
             sys.exit(2)
 
         for instruction in program:
             self.ram[address] = instruction
-            address += 1
+            address += 1 # next spot in memory is the next free spot
 
         # print(program)
     def alu(self, op, reg_a, reg_b):
@@ -94,17 +94,18 @@ class CPU:
         self.run_start()
         
         while self.running:
+            # commands
             command = self.ram_read(self.pc)
-
+            # HLT
             if command == self.HLT:
                 self.run_HLT()
-
+            # Save
             elif command == self.LDI:
                 self.run_LDI()
-
+            # Print
             elif command == self.PRN:
                 self.run_PRN()
-
+            # Multiply
             elif command == self.MUL:
                 self.run_MUL()
 
@@ -118,21 +119,21 @@ class CPU:
     def run_start(self):
         print("Program Started")
         self.running = True
-
+    # Halt
     def run_HLT(self):
         # print(self.register)
         print("Program Ended")
         self.running = False
         self.pc = 0
-
+    # Save
     def run_LDI(self):
         self.register[self.ram_read(self.pc+1)] = self.ram_read(self.pc+2)
         self.pc += 3
-
+    # Print
     def run_PRN(self):
         print(self.register[self.ram_read(self.pc+1)])
         self.pc += 2
-
+   # Multiply
     def run_MUL(self):
         #print(self.register)
         self.register[self.ram_read(self.pc+1)] = self.register[

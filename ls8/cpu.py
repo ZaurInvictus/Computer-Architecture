@@ -11,10 +11,14 @@ class CPU:
         self.register = [0] * 8 
         self.pc = 0
         self.running = False
+        self.sp = 7
         self.HLT = 0b00000001 # Running is false
         self.LDI = 0b10000010 # Save 
         self.PRN = 0b01000111 # Print
         self.MUL = 0b10100010 # Multiply
+        self.PUSH = 0b01000101
+        self.POP = 0b01000110
+
 
     def load(self):
         """Load a program into memory."""
@@ -54,6 +58,7 @@ class CPU:
             print(f"{sys.argv[0]}! {sys.argv[1]} not found")
             sys.exit(2)
 
+        # try to remove it inside the loop and test
         for instruction in program:
             self.ram[address] = instruction
             address += 1 # next spot in memory is the next free spot
@@ -109,6 +114,12 @@ class CPU:
             elif command == self.MUL:
                 self.run_MUL()
 
+            elif command == self.PUSH:
+                self.run_PUSH()
+
+            elif command == self.POP:
+                self.run_POP()
+
     def ram_read(self, address):
         return self.ram[address]
 
@@ -139,6 +150,20 @@ class CPU:
         self.register[self.ram_read(self.pc+1)] = self.register[
             self.ram_read(self.pc+1)] * self.register[self.ram_read(self.pc+2)]
         self.pc += 3
+    # DAY 3 Push & Pop
+    def run_PUSH(self):
+        reg = self.ram[self.pc + 1]
+        val = self.register[reg]
+        self.register[self.sp] -= 1
+        self.ram[self.register[self.sp]] = val
+        self.pc += 2
+
+    def run_POP(self):
+        reg = self.ram[self.pc + 1]
+        val = self.ram[self.register[self.sp]]
+        self.register[reg] = val
+        self.register[self.sp] += 1
+        self.pc += 2
 
 
 

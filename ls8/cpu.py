@@ -2,6 +2,13 @@
 
 import sys
 
+# HLT = 0b00000001 # Running is false
+# LDI = 0b10000010 # Save 
+# PRN = 0b01000111 # Print
+# MUL = 0b10100010 # Multiply
+# PUSH = 0b01000101 # Push function - add the value from the register to the stack
+# POP = 0b01000110 # Pop function - pop the value from the top of the stack to the register
+
 class CPU:
     """Main CPU class."""
 
@@ -16,9 +23,13 @@ class CPU:
         self.LDI = 0b10000010 # Save 
         self.PRN = 0b01000111 # Print
         self.MUL = 0b10100010 # Multiply
-        self.PUSH = 0b01000101
-        self.POP = 0b01000110
+        self.PUSH = 0b01000101 # Push function - add the value from the register to the stack
+        self.POP = 0b01000110 # Pop function - pop the value from the top of the stack to the register
+        self.CALL = 0b01010000 # CALL function
+        self.RET = 0b00010001  # RET function
+        self.ADD = 0b10100000  # ADD function
 
+    
 
     def load(self):
         """Load a program into memory."""
@@ -113,12 +124,24 @@ class CPU:
             # Multiply
             elif command == self.MUL:
                 self.run_MUL()
-
+            # Push
             elif command == self.PUSH:
                 self.run_PUSH()
-
+            # Pop
             elif command == self.POP:
                 self.run_POP()
+  
+            # CALL
+            elif command == self.CALL:
+                self.run_CALL()
+            # RET
+            elif command == self.RET:
+                self.run_RET()
+            # Add
+            elif command == self.ADD:
+                self.run_ADD()
+
+
 
     def ram_read(self, address):
         return self.ram[address]
@@ -151,13 +174,14 @@ class CPU:
             self.ram_read(self.pc+1)] * self.register[self.ram_read(self.pc+2)]
         self.pc += 3
     # DAY 3 Push & Pop
+    # PUSH
     def run_PUSH(self):
         reg = self.ram[self.pc + 1]
         val = self.register[reg]
         self.register[self.sp] -= 1
         self.ram[self.register[self.sp]] = val
         self.pc += 2
-
+    # POP
     def run_POP(self):
         reg = self.ram[self.pc + 1]
         val = self.ram[self.register[self.sp]]
@@ -165,7 +189,28 @@ class CPU:
         self.register[self.sp] += 1
         self.pc += 2
 
+    ### Day 4 Call & Ret ############
+    # Call
+    def run_CALL(self):
+        self.register[self.sp] -= 1
+        self.ram[self.register[self.sp]] = self.pc + 2
+        register = self.ram[self.pc + 1]
+        reg_value = self.register[register]
+        self.pc = reg_value
 
+    # Return
+    def run_RET(self):
+        return_value = self.ram[self.register[self.sp]]
+        self.register[self.sp] += 1
+        self.pc = return_value
 
+    # Add
+    # def run_ADD(self):
+    #     reg1 = self.ram[self.pc + 1]
+    #     reg2 = self.ram[self.pc + 2]
+    #     self.alu("ADD", reg1, reg2)
+    #     self.pc += 3
 
-
+    def run_ADD(self):
+        self.alu('ADD', self.ram[self.pc + 1], self.ram[self.pc + 2])
+        self.pc +=3
